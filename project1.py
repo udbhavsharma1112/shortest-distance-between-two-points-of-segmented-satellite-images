@@ -1,124 +1,106 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 import cv2
 import numpy 
+from queue import Queue
 
 
-# In[2]:
+img = cv2.imread("17878885_15.tiff") # example image
 
 
-mycolor = [[74,188,35,179,255,255],
-          [113,91,139,179,255,255],
-          [59,107,98,86,250,223],
-          [0,161,187,179,218,255]]
-colorval=[[255,153,51],
-          [102,102,255],
-          [0,255,0],
-          [0,128,255]]
-points=[]
+
+img=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) # convert into gray scale
 
 
-# In[3]:
+for i in range(1500):
+    for j in range(1500):
+        if img[i][j]>0:
+            img[i][j]=1
 
 
-def findcolor(img,mycolor,colorval):
-    imghsv=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    count=0
-    newpoints=[]
-    for color in mycolor:
-        lower = numpy.array(color[0:3])
-        upper = numpy.array(color[3:6])
-        mask  = cv2.inRange(imghsv,lower,upper)
-        x,y=getcountour(mask)
-        cv2.circle(imgres,(x,y),10,colorval[count],cv2.FILLED)
-        if x!=0 and y!=0:
-            newpoints.append([x,y,count])
-        count+=1
+def valid(i,j):
+    if i<0 or j<0 or i>=1500 or j>=1500:
+        return 0
+    return 1
+
+
+q = Queue()
+INF=1000000001
+st=[1133,872]   #starting point example
+en=[666,253]    #ending point
+dx=[0,0,1,-1]
+dy=[1,-1,0,0]
+dis=[]
+for i in range(1501):
+    col=[]
+    for j in range(1501):
+        col.append(INF)
+    dis.append(col)
+path={}
+q.put(st)
+dis[st[0]][st[1]]=0
+
+
+for i in range(1501):
+    for j in range(1501):
+        sit=str(i)+' '+str(j)
+        path[sit]=sit
+
+
+h=0
+while q.empty()==False:
+    x=q.get()
+    for i in range(4):
+        nx=x[0]+dx[i]
+        ny=x[1]+dy[i]
+        if valid(nx,ny):
+            if dis[nx][ny]>dis[x[0]][x[1]]+1 and img[nx][ny]==1:
+                dis[nx][ny]=dis[x[0]][x[1]]+1
+                q.put([nx,ny])
+                s1t=str(nx)+' '+str(ny)
+                stt=str(x[0])+' '+str(x[1])
+                path[s1t]=stt
+                h+=1
+            
+            
         
-    return newpoints
+dis[en[0]][en[1]]
+s2t=str(en[0])+' '+str(en[1])
 
 
-# In[4]:
 
-
-def getcountour(img):
-    countour,h=cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-    x,y,w,h=0,0,0,0
-    for cnt in countour:
-        area=cv2.contourArea(cnt)
-        if area>500:
-            #cv2.drawContours(imgres,cnt, -1,(255,255,0), 3)
-            peri=cv2.arcLength(cnt,True)
-            approx = cv2.approxPolyDP(cnt,0.02*peri,True)
-            x,y,w,h=cv2.boundingRect(approx)
-    return x+w//2,y
-        
-
-
-# In[5]:
-
-
-def draw(points,colorval):
-    for point in points:
-        cv2.circle(imgres,(point[0],point[1]),10,colorval[point[2]],cv2.FILLED)
-        
-
-
-# In[6]:
-
-
-vid = cv2.VideoCapture(0)
-#vid.set(3,640)
-#vid.set(4,240)
-while True:
-    success,img = vid.read()
-    imgres =img.copy()
-    newpoints= findcolor(img,mycolor,colorval)
-    if len(newpoints)!=0:
-        for np in newpoints:
-            points.append(np)
-    if len(points)!=0:
-        draw(points,colorval)
-    cv2.imshow("result", imgres)
-    if cv2.waitKey(1)& 0XFF== ord('q'):
-        break;
-
-
-# In[ ]:
+path[s2t]
 
 
 
 
-
-# In[ ]:
-
+path['667 253']
 
 
-
-
-# In[ ]:
+# In[36]:
 
 
 
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+ans=[]
+ans.append(en)
+while path[s2t]!=s2t:
+    s2t=path[s2t]
+    inp = list(map(int, s2t.split()))
+    ans.append(inp)
 
 
 
+imgres = cv2.imread("img.tiff")
+ans.reverse()
+len(ans)
 
 
-# In[ ]:
+for i in range(len(ans)):
+    cv2.circle(imgres,(ans[i][1],ans[i][0]),10,(255,0,0),cv2.FILLED)
+
+
+
+cv2.imshow("final",imgres)
+cv2.waitKey(0)
 
 
 
